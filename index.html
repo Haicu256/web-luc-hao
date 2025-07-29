@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xem Quẻ Lục Hào</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Quicksand:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #D4AF37; --background-color: #111827; --surface-color: rgba(31, 41, 55, 0.85);
+            --text-color: #E5E7EB; --border-color: rgba(212, 175, 55, 0.2); --danger-color: #F87171;
+            --the-ung-color: #60A5FA; --font-display: 'Playfair Display', serif; --font-body: 'Quicksand', sans-serif;
+        }
+        body {
+            font-family: var(--font-body); background: var(--background-color); color: var(--text-color);
+            line-height: 1.8; margin: 0; padding: 20px;
+            background-image: radial-gradient(circle at top right, rgba(74, 105, 189, 0.2), transparent 40%),
+                              radial-gradient(circle at bottom left, rgba(212, 175, 55, 0.15), transparent 50%);
+            background-attachment: fixed;
+        }
+        .container {
+            max-width: 1400px; margin: auto; display: grid; grid-template-columns: 420px 1fr;
+            gap: 30px; background: var(--surface-color); padding: 30px; border-radius: 16px;
+            border: 1px solid var(--border-color); box-shadow: 0 10px 40px rgba(0,0,0,0.5); backdrop-filter: blur(10px);
+        }
+        .casting-panel { text-align: center; padding-right: 30px; border-right: 1px solid var(--border-color); }
+        .analysis-panel { display: none; opacity: 0; transition: opacity 0.8s ease-in-out; }
+        .analysis-panel.visible { display: block; opacity: 1; }
+        h1, h2, h3, h4 { font-family: var(--font-display); color: var(--primary-color); text-shadow: 0 0 10px rgba(212, 175, 55, 0.3); }
+        h1 { font-size: 2.2em; } h2 { font-size: 2em; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; margin-bottom: 25px;}
+        h3 { color: #E5E7EB; font-size: 1.4em; margin-top: 25px; margin-bottom: 5px; }
+        h4 { color: var(--primary-color); font-size: 1.2em; margin-top: 15px; margin-bottom: 5px; text-align: left; border-bottom: 1px solid var(--border-color); padding-bottom:5px;}
+        .question-selection { margin: 20px 0; }
+        .question-selection label { font-weight: 700; display: block; margin-bottom: 10px; }
+        .question-selection select { width: 100%; padding: 12px; font-size: 16px; border-radius: 8px; border: 1px solid var(--border-color); background: #374151; color: var(--text-color); font-family: var(--font-body); }
+        button { padding: 15px 35px; font-size: 20px; font-weight: 700; cursor: pointer; background-color: var(--primary-color); color: #111827; border: none; border-radius: 50px; transition: all 0.3s ease; margin-top: 15px; box-shadow: 0 0 20px rgba(212, 175, 55, 0.3); }
+        button:hover { box-shadow: 0 0 30px 10px rgba(212, 175, 55, 0.4); transform: translateY(-3px) scale(1.05); }
+        button#reset-button { background-color: #6B7280; color: var(--text-color); box-shadow: none; }
+        .hexagram-container { width: 100%; text-align: center; }
+        .hexagram-name { color: var(--primary-color); font-weight: 500; font-size: 1.1em; margin: 0 0 10px 0; min-height: 1.2em; }
+        .hexagram { display: flex; flex-direction: column-reverse; width: 120px; margin: auto; }
+        .line-wrapper { display: flex; align-items: center; margin: 6px 0; position: relative; height: 14px; }
+        .line { flex-grow: 1; height: 100%; background-color: #9CA3AF; border-radius: 3px; }
+        .broken { background-color: transparent; display: flex; justify-content: space-between; }
+        .broken-part { width: 45%; height: 100%; background-color: #9CA3AF; border-radius: 3px; }
+        .line.changing, .line.changing .broken-part { background-color: var(--danger-color); }
+        .line-marker { position: absolute; right: -85px; width: 80px; text-align: left; font-size: 14px; font-weight: 700; }
+        .marker-the-ung { color: var(--the-ung-color); } .marker-dong { color: var(--danger-color); }
+        .info-box { background: rgba(17, 24, 39, 0.7); border-left: 4px solid var(--primary-color); padding: 18px; border-radius: 8px; margin-bottom: 20px; }
+        .ai-box { background: linear-gradient(145deg, rgba(212, 175, 55, 0.1), rgba(212, 175, 55, 0)); border: 1px solid var(--border-color); }
+        .ai-box ul { list-style-type: '✧ '; padding-left: 20px; } .ai-box li { margin-bottom: 10px; }
+        .ai-summary { font-size: 1.3em; font-weight: 700; text-align: center; margin-top: 20px; padding: 10px; border-radius: 8px; }
+        .ai-hint { text-align: left; margin-top: 15px; padding-top: 15px; border-top: 1px dashed var(--border-color); }
+        .summary-good { background-color: rgba(52, 211, 153, 0.2); color: #A7F3D0; }
+        .summary-bad { background-color: rgba(248, 113, 113, 0.2); color: #FECACA; }
+        .summary-neutral { background-color: rgba(96, 165, 250, 0.2); color: #BFDBFE; }
+        table { width: 100%; border-collapse: collapse; font-size: 15px; }
+        th, td { border: 1px solid var(--border-color); padding: 12px; text-align: center; }
+        th { font-weight: 700; color: var(--primary-color); background-color: rgba(31, 41, 55, 1); }
+        tbody tr:nth-child(even) { background-color: rgba(17, 24, 39, 0.5); }
+        .row-the-ung { background-color: rgba(96, 165, 250, 0.15) !important; }
+        .line-symbol { font-size: 24px; line-height: 1; font-family: var(--font-display); }
+        .dong-text { color: var(--danger-color); font-weight: 700; }
+        .tuan-khong { color: var(--danger-color); font-weight: 500; }
+        .luc-than { font-weight: 700; padding: 4px 8px; border-radius: 4px; color: #111827; }
+        .Kim { background-color: #FBBF24; } .Moc { background-color: #34D399; }
+        .Thuy { background-color: #60A5FA; } .Hoa { background-color: #F87171; } .Tho { background-color: #D2B48C; }
+        .credits { font-size:12px; text-align:center; opacity:0.7; margin-top:5px; }
+        @media (max-width: 1024px) { .container { grid-template-columns: 1fr; } .casting-panel { border-right: none; padding-right: 0; border-bottom: 1px solid var(--border-color); padding-bottom: 25px; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="casting-panel">
+            <h1>Xem Quẻ Lục Hào</h1>
+            <div class="question-selection">
+                <label for="question-select">1. Chọn Vấn Đề Muốn Hỏi:</label>
+                <select id="question-select">
+                    <option value="cong-danh">Công Danh & Sự Nghiệp</option>
+                    <option value="tai-loc">Tài Lộc & Tiền Bạc</option>
+                    <option value="tinh-duyen">Tình Duyên & Gia Đạo</option>
+                    <option value="tim-do">Tìm Đồ Vật / Thú Cưng</option>
+                    <option value="xuat-hanh">Hỏi Về Chuyến Đi / Xuất Hành</option>
+                    <option value="con-cai">Hỏi Về Con Cái / Thai Sản</option>
+                    <option value="thi-cu">Việc Học & Thi Cử</option>
+                    <option value="suc-khoe">Sức Khỏe & An Nguy</option>
+                </select>
+            </div>
+            <p style="font-size: 15px; color: #D1D5DB;">2. Tâm thành ý tĩnh, chuyên chú vào câu hỏi. An nhiên bấm nút "Lập Quẻ" sáu lần.</p>
+            <button id="cast-button">Lập Quẻ (1/6)</button>
+            <button id="reset-button" style="display:none;">Gieo Lại</button>
+            <div id="hexagram-group" style="display:none;">
+                <div class="hexagram-container"><h3>Quẻ Gốc</h3><p class="hexagram-name" id="cast-hexagram-name"></p><div class="hexagram" id="cast-hexagram"></div></div>
+                <div class="hexagram-container" id="mutual-hexagram-container"><h3>Quẻ Hỗ</h3><p class="hexagram-name" id="mutual-hexagram-name"></p><div class="hexagram" id="mutual-hexagram"></div></div>
+                <div class="hexagram-container" id="changed-hexagram-container"><h3>Quẻ Biến</h3><p class="hexagram-name" id="changed-hexagram-name"></p><div class="hexagram" id="changed-hexagram"></div></div>
+            </div>
+        </div>
+        <div class="analysis-panel" id="analysis-panel">
+            <div id="ai-interpretation-container" class="info-box ai-box" style="display:none;"></div>
+            <h2 id="main-hex-title"></h2>
+            <div id="qu-info" class="info-box"></div>
+            <table id="analysis-table"><thead><tr><th>Hào</th><th>Biểu Tượng</th><th>Động Tĩnh</th><th>Địa Chi & Hành</th><th>Lục Thân</th><th>Thế/Ứng</th><th>Tuần Không</th></tr></thead><tbody id="analysis-table-body"></tbody></table>
+            <div id="qu-ho-info-box" class="info-box" style="display:none;"></div><div id="qu-bien-info-box" class="info-box" style="display:none;"></div>
+        </div>
+    </div>
+    
+    <script>
+    (() => {
+        // --- CORE DATA (REBUILT & VERIFIED) ---
+        const KINH_DICH_DATA={'111111':{id:1,name:'Thuần Càn',palace:'Càn',branches:['Tuất','Thân','Ngọ','Thìn','Dần','Tý']},'011111':{id:44,name:'Thiên Phong Cấu',palace:'Càn',branches:['Tuất','Thân','Ngọ','Tỵ','Mão','Sửu']},'001111':{id:33,name:'Thiên Sơn Độn',palace:'Càn',branches:['Tuất','Thân','Ngọ','Thân','Ngọ','Thìn']},'000111':{id:12,name:'Thiên Địa Bĩ',palace:'Càn',branches:['Tuất','Thân','Ngọ','Mùi','Tỵ','Sửu']},'000011':{id:20,name:'Phong Địa Quan',palace:'Càn',branches:['Tuất','Thân','Ngọ','Dậu','Hợi','Sửu']},'000001':{id:23,name:'Sơn Địa Bác',palace:'Càn',branches:['Tuất','Thân','Ngọ','Tuất','Thân','Ngọ']},'101001':{id:22,name:'Sơn Hỏa Bí',palace:'Càn',branches:['Dần','Tý','Tuất','Hợi','Sửu','Mão']},'111101':{id:14,name:'Hỏa Thiên Đại Hữu',palace:'Càn',branches:['Mùi','Tỵ','Mão','Thân','Tuất','Tý']},'000000':{id:2,name:'Thuần Khôn',palace:'Khôn',branches:['Dậu','Hợi','Sửu','Mão','Tỵ','Mùi']},'100000':{id:24,name:'Địa Lôi Phục',palace:'Khôn',branches:['Dậu','Hợi','Sửu','Thìn','Ngọ','Thân']},'110000':{id:19,name:'Địa Trạch Lâm',palace:'Khôn',branches:['Dậu','Hợi','Sửu','Sửu','Dậu','Mùi']},'111000':{id:11,name:'Địa Thiên Thái',palace:'Khôn',branches:['Dậu','Hợi','Sửu','Ngọ','Thân','Tuất']},'111100':{id:34,name:'Lôi Thiên Đại Tráng',palace:'Khôn',branches:['Dậu','Hợi','Sửu','Thân','Tuất','Tý']},'010111':{id:6,name:'Thiên Thủy Tụng',palace:'Khôn',branches:['Dậu','Hợi','Sửu','Tuất','Tý','Dần']},'000101':{id:35,name:'Hỏa Địa Tấn',palace:'Khôn',branches:['Ngọ','Thìn','Dần','Sửu','Mão','Tỵ']},'000010':{id:8,name:'Thủy Địa Tỷ',palace:'Khôn',branches:['Mùi','Tỵ','Mão','Tuất','Thân','Ngọ']},'100100':{id:51,name:'Thuần Chấn',palace:'Chấn',branches:['Tuất','Thân','Ngọ','Thìn','Dần','Tý']},'000100':{id:16,name:'Lôi Địa Dự',palace:'Chấn',branches:['Tuất','Thân','Ngọ','Mùi','Tỵ','Sửu']},'010100':{id:40,name:'Lôi Thủy Giải',palace:'Chấn',branches:['Tuất','Thân','Ngọ','Thân','Ngọ','Thìn']},'011100':{id:32,name:'Lôi Phong Hằng',palace:'Chấn',branches:['Tuất','Thân','Ngọ','Dậu','Hợi','Sửu']},'011000':{id:46,name:'Địa Phong Thăng',palace:'Chấn',branches:['Tuất','Thân','Ngọ','Hợi','Sửu','Mão']},'010000':{id:7,name:'Địa Thủy Sư',palace:'Chấn',branches:['Tuất','Thân','Ngọ','Tuất','Thân','Ngọ']},'110100':{id:54,name:'Lôi Trạch Quy Muội',palace:'Chấn',branches:['Thìn','Dần','Tý','Hợi','Sửu','Mão']},'100011':{id:42,name:'Phong Lôi Ích',palace:'Chấn',branches:['Mão','Tỵ','Mùi','Thân','Tuất','Tý']},'011011':{id:57,name:'Thuần Tốn',palace:'Tốn',branches:['Mão','Tỵ','Mùi','Dậu','Hợi','Sửu']},'111011':{id:9,name:'Phong Thiên Tiểu Súc',palace:'Tốn',branches:['Mão','Tỵ','Mùi','Thân','Tuất','Tý']},'101011':{id:37,name:'Phong Hỏa Gia Nhân',palace:'Tốn',branches:['Mão','Tỵ','Mùi','Dậu','Mùi','Tỵ']},'100011':{id:42,name:'Phong Lôi Ích',palace:'Tốn',branches:['Mão','Tỵ','Mùi','Ngọ','Thân','Tuất']},'100111':{id:25,name:'Thiên Lôi Vô Vọng',palace:'Tốn',branches:['Mão','Tỵ','Mùi','Thân','Tuất','Tý']},'001011':{id:53,name:'Phong Sơn Tiệm',palace:'Tốn',branches:['Mão','Tỵ','Mùi','Tuất','Tý','Dần']},'110011':{id:61,name:'Phong Trạch Trung Phu',palace:'Tốn',branches:['Dậu','Mùi','Tỵ','Thân','Ngọ','Thìn']},'011001':{id:18,name:'Sơn Phong Cổ',palace:'Tốn',branches:['Ngọ','Thìn','Dần','Mão','Tỵ','Mùi']},'010010':{id:29,name:'Thuần Khảm',palace:'Khảm',branches:['Tý','Tuất','Thân','Ngọ','Thìn','Dần']},'110010':{id:60,name:'Thủy Trạch Tiết',palace:'Khảm',branches:['Tý','Tuất','Thân','Hợi','Dậu','Mùi']},'100010':{id:3,name:'Thủy Lôi Truân',palace:'Khảm',branches:['Tý','Tuất','Thân','Tuất','Thân','Ngọ']},'101010':{id:63,name:'Thủy Hỏa Ký Tế',palace:'Khảm',branches:['Tý','Tuất','Thân','Dậu','Mùi','Tỵ']},'001010':{id:39,name:'Thủy Sơn Kiển',palace:'Khảm',branches:['Tý','Tuất','Thân','Thân','Tuất','Tý']},'011010':{id:48,name:'Thủy Phong Tỉnh',palace:'Khảm',branches:['Tý','Tuất','Thân','Tuất','Tý','Dần']},'101000':{id:36,name:'Địa Hỏa Minh Di',palace:'Khảm',branches:['Mùi','Tỵ','Mão','Tuất','Thân','Ngọ']},'010000':{id:7,name:'Địa Thủy Sư',palace:'Khảm',branches:['Dậu','Hợi','Sửu','Thân','Ngọ','Thìn']},'101101':{id:30,name:'Thuần Ly',palace:'Ly',branches:['Tỵ','Mùi','Dậu','Hợi','Sửu','Mão']},'001101':{id:56,name:'Hỏa Sơn Lữ',palace:'Ly',branches:['Tỵ','Mùi','Dậu','Thân','Ngọ','Thìn']},'011101':{id:50,name:'Hỏa Phong Đỉnh',palace:'Ly',branches:['Tỵ','Mùi','Dậu','Mùi','Tỵ','Mão']},'010101':{id:64,name:'Hỏa Thủy Vị Tế',palace:'Ly',branches:['Tỵ','Mùi','Dậu','Thân','Tuất','Tý']},'110101':{id:38,name:'Hỏa Trạch Khuê',palace:'Ly',branches:['Tỵ','Mùi','Dậu','Hợi','Dậu','Mùi']},'111101':{id:14,name:'Hỏa Thiên Đại Hữu',palace:'Ly',branches:['Tỵ','Mùi','Dậu','Thân','Tuất','Tý']},'100101':{id:21,name:'Hỏa Lôi Phệ Hạp',palace:'Ly',branches:['Thìn','Dần','Tý','Hợi','Sửu','Mão']},'101111':{id:13,name:'Thiên Hỏa Đồng Nhân',palace:'Ly',branches:['Ngọ','Thìn','Dần','Hợi','Dậu','Mùi']},'001001':{id:52,name:'Thuần Cấn',palace:'Cấn',branches:['Thìn','Ngọ','Thân','Tuất','Tý','Dần']},'101001':{id:22,name:'Sơn Hỏa Bí',palace:'Cấn',branches:['Thìn','Ngọ','Thân','Dậu','Mùi','Tỵ']},'111001':{id:26,name:'Sơn Thiên Đại Súc',palace:'Cấn',branches:['Thìn','Ngọ','Thân','Ngọ','Thân','Tuất']},'110001':{id:41,name:'Sơn Trạch Tốn',palace:'Cấn',branches:['Thìn','Ngọ','Thân','Hợi','Dậu','Mùi']},'010001':{id:4,name:'Sơn Thủy Mông',palace:'Cấn',branches:['Thìn','Ngọ','Thân','Thân','Tuất','Tý']},'011001':{id:18,name:'Sơn Phong Cổ',palace:'Cấn',branches:['Thìn','Ngọ','Thân','Ngọ','Thân','Tuất']},'000001':{id:23,name:'Sơn Địa Bác',palace:'Cấn',branches:['Tý','Tuất','Thân','Mão','Tỵ','Mùi']},'101000':{id:36,name:'Địa Hỏa Minh Di',palace:'Cấn',branches:['Mùi','Tỵ','Mão','Tuất','Tý','Dần']},'110110':{id:58,name:'Thuần Đoài',palace:'Đoài',branches:['Mùi','Dậu','Hợi','Sửu','Mão','Tỵ']},'010110':{id:47,name:'Trạch Thủy Khốn',palace:'Đoài',branches:['Mùi','Dậu','Hợi','Thân','Ngọ','Thìn']},'000110':{id:45,name:'Trạch Địa Tụy',palace:'Đoài',branches:['Mùi','Dậu','Hợi','Dậu','Hợi','Sửu']},'001110':{id:31,name:'Trạch Sơn Hàm',palace:'Đoài',branches:['Mùi','Dậu','Hợi','Tuất','Tý','Dần']},'100110':{id:17,name:'Trạch Lôi Tùy',palace:'Đoài',branches:['Mùi','Dậu','Hợi','Ngọ','Thân','Tuất']},'101110':{id:49,name:'Trạch Hỏa Cách',palace:'Đoài',branches:['Mùi','Dậu','Hợi','Thân','Tuất','Tý']},'011110':{id:28,name:'Trạch Phong Đại Quá',palace:'Đoài',branches:['Dần','Tý','Tuất','Sửu','Mão','Tỵ']},'110010':{id:60,name:'Thủy Trạch Tiết',palace:'Đoài',branches:['Tý','Dần','Thìn','Sửu','Hợi','Dậu']}};
+        const CAN=['Giáp','Ất','Bính','Đinh','Mậu','Kỷ','Canh','Tân','Nhâm','Quý'],CHI=['Tý','Sửu','Dần','Mão','Thìn','Tỵ','Ngọ','Mùi','Thân','Dậu','Tuất','Hợi'];
+        const NGU_HANH={'Tý':'Thủy','Hợi':'Thủy','Dần':'Mộc','Mão':'Mộc','Tỵ':'Hỏa','Ngọ':'Hỏa','Thân':'Kim','Dậu':'Kim','Thìn':'Thổ','Tuất':'Thổ','Sửu':'Thổ','Mùi':'Thổ'};
+        const CUNG_NGU_HANH={'Càn':'Kim','Đoài':'Kim','Ly':'Hỏa','Chấn':'Mộc','Tốn':'Mộc','Khảm':'Thủy','Cấn':'Thổ','Khôn':'Thổ'};
+        const SINH_KHAC={'Kim':{sinh:'Thủy',khac:'Mộc'},'Thủy':{sinh:'Mộc',khac:'Hỏa'},'Mộc':{sinh:'Hỏa',khac:'Thổ'},'Hỏa':{sinh:'Thổ',khac:'Kim'},'Thổ':{sinh:'Kim',khac:'Thủy'}};
+        const QUESTION_MAP={'cong-danh':'Quan Quỷ','tai-loc':'Thê Tài','tinh-duyen':'Ứng','thi-cu':'Phụ Mẫu','suc-khoe':'Thế','tim-do':'Thê Tài','xuat-hanh':'Thế','con-cai':'Tử Tôn'};
+        const LOCATION_HINTS = {'Kim':'hướng Tây, gần đồ kim loại, vật tròn.','Thủy':'hướng Bắc, gần sông nước, nơi ẩm ướt, chỗ trũng.','Mộc':'hướng Đông, gần cây cối, đồ gỗ, nơi có gió.','Hỏa':'hướng Nam, nơi sáng sủa, gần bếp lửa, đồ điện.','Thổ':'ở trung tâm, gần mặt đất, đồ gốm sứ, nơi chứa đồ.'};
+        const DIRECTION_MAP = {'Tý':'Phương Bắc','Ngọ':'Phương Nam','Mão':'Phương Đông','Dậu':'Phương Tây','Dần':'Hướng Đông Bắc','Thân':'Hướng Tây Nam','Tỵ':'Hướng Đông Nam','Hợi':'Hướng Tây Bắc','Thìn':'Hướng Đông Nam','Tuất':'Hướng Tây Bắc','Sửu':'Hướng Đông Bắc','Mùi':'Hướng Tây Nam'};
+        const SUMMARY_TEXTS = {
+            'cong-danh':{vgood:"Thăng Tiến Vượt Bậc",good:"Sự Nghiệp Hanh Thông",bad:"Công Việc Trở Ngại",vbad:"Sự Nghiệp Nguy Hiểm",neutral:"Bình Thường, Cần Nỗ Lực"},
+            'tai-loc':{vgood:"Tài Lộc Rực Rỡ",good:"Tài Vận Tốt Đẹp",bad:"Tài Lộc Hao Tổn",vbad:"Phá Tài Nghiêm Trọng",neutral:"Tài Lộc Trung Bình"},
+            'tinh-duyen':{vgood:"Duyên Phận Trời Định",good:"Tình Cảm Thuận Lợi",bad:"Tình Cảm Sóng Gió",vbad:"Duyên Phận Mong Manh",neutral:"Cần Thêm Thời Gian"},
+            'tim-do':{vgood:"Chắc Chắn Tìm Được",good:"Dễ Dàng Tìm Thấy",bad:"Khó Tìm Lại",vbad:"Rất Khó Tìm Lại",neutral:"Còn Hy Vọng, Cần Kiên Nhẫn"},
+            'xuat-hanh':{vgood:"Thượng Lộ Bình An",good:"Chuyến Đi Thuận Lợi",bad:"Hành Trình Bất Lợi",vbad:"Chuyến Đi Nhiều Trở Ngại",neutral:"Chuyến Đi Trung Bình"},
+            'default':{vgood:"Đại Cát",good:"Cát Lợi",bad:"Bất Lợi",vbad:"Đại Hung",neutral:"Bình Hòa"}
+        };
+
+        // --- DOM & STATE ---
+        const DOM = { questionSelect:document.getElementById('question-select'),castButton:document.getElementById('cast-button'),resetButton:document.getElementById('reset-button'),hexagramGroup:document.getElementById('hexagram-group'),castHexagram:document.getElementById('cast-hexagram'),castHexagramName:document.getElementById('cast-hexagram-name'),mutualHexagramContainer:document.getElementById('mutual-hexagram-container'),mutualHexagram:document.getElementById('mutual-hexagram'),mutualHexagramName:document.getElementById('mutual-hexagram-name'),changedHexagramContainer:document.getElementById('changed-hexagram-container'),changedHexagram:document.getElementById('changed-hexagram'),changedHexagramName:document.getElementById('changed-hexagram-name'),analysisPanel:document.getElementById('analysis-panel'),mainHexTitle:document.getElementById('main-hex-title'),quInfo:document.getElementById('qu-info'),analysisTableBody:document.getElementById('analysis-table-body'),quHoInfoBox:document.getElementById('qu-ho-info-box'),quBienInfoBox:document.getElementById('qu-bien-info-box'),aiInterpretationContainer:document.getElementById('ai-interpretation-container')};
+        let state = { lines: [], castCount: 0, selectedQuestion: '' };
+
+        // --- LOGIC FUNCTIONS ---
+        const getCanChiDate=()=>{const d=new Date(),jd=Math.floor(d.getTime()/86400000-d.getTimezoneOffset()/1440+2440587.5);return{fullDate:d.toLocaleDateString('vi-VN'),dayCanChi:`${CAN[(jd+9)%10]} ${CHI[(jd+1)%12]}`,monthChi:CHI[(d.getFullYear()*12+d.getMonth()+3)%12]}};
+        const getTuanKhong=d=>{const[,c]=d.split(' '),i=CHI.indexOf(c);return[CHI[(i+2)%12],CHI[(i+3)%12]]};
+        const getLucThan=(pH,lH)=>{const t=pH,sT=Object.keys(SINH_KHAC).find(k=>SINH_KHAC[k].sinh===t),tS=SINH_KHAC[t].sinh,kT=Object.keys(SINH_KHAC).find(k=>SINH_KHAC[k].khac===t),tK=SINH_KHAC[t].khac;if(lH===t)return'Huynh Đệ';if(lH===sT)return'Phụ Mẫu';if(lH===tS)return'Tử Tôn';if(lH===kT)return'Quan Quỷ';if(lH===tK)return'Thê Tài'};
+        const getTheUng=hD=>{if(!hD)return{};const{palace:p,name:n}=hD,pH=Object.values(KINH_DICH_DATA).filter(h=>h.palace===p),hM={0:'Thuần',1:'Hào 1 Biến',2:'Hào 2 Biến',3:'Hào 3 Biến',4:'Hào 4 Biến',5:'Hào 5 Biến',6:'Du Hồn',7:'Quy Hồn'},hT=hM[pH.findIndex(h=>h.name===n)];let tL;switch(hT){case'Thuần':tL=6;break;case'Hào 1 Biến':tL=1;break;case'Hào 2 Biến':tL=2;break;case'Hào 3 Biến':tL=3;break;case'Hào 4 Biến':tL=4;break;case'Hào 5 Biến':tL=5;break;case'Du Hồn':tL=4;break;case'Quy Hồn':tL=3;break;default:return{}}const uL=(tL+3-1)%6+1;return{[tL]:'Thế',[uL]:'Ứng'}};
+        
+        // --- AI INTERPRETATION ENGINE ---
+        function runAI(analysisData) {
+            const { hexData, lines, TheUng, TuanKhong, palaceHanh, selectedQuestion, dateInfo, mutualHexData, changedHexData } = analysisData;
+            let dungThanName = QUESTION_MAP[selectedQuestion];
+            let score = 0; let points = {goc:[], ho:[], bien:[], hint:null};
+            let allHaos = lines.map((line, i) => ({ ...line, index: i, chi: hexData.branches[i], hanh: NGU_HANH[hexData.branches[i]], lucThan: getLucThan(palaceHanh, NGU_HANH[hexData.branches[i]]), isThe: TheUng[i+1]==='Thế', isUng: TheUng[i+1]==='Ứng' }));
+            const theHao = allHaos.find(h => h.isThe);
+            let dungThanHao;
+            if(dungThanName==='Thế') dungThanHao=theHao; else if(dungThanName==='Ứng') dungThanHao=allHaos.find(h=>h.isUng); else {const candidates=allHaos.filter(h=>h.lucThan===dungThanName);dungThanHao=candidates.find(h=>h.c)||candidates[0];}
+            if(dungThanName==='Thế')dungThanName="Hào Thế";if(dungThanName==='Ứng')dungThanName="Hào Ứng";
+            
+            let nguyenThanHao = null, kyThanHao = null; let isVuong = false;
+            if(dungThanHao) {
+                const nguyenThanHanh = Object.keys(SINH_KHAC).find(k => SINH_KHAC[k].sinh === dungThanHao.hanh);
+                const kyThanHanh = SINH_KHAC[dungThanHao.hanh].khac;
+                nguyenThanHao = allHaos.find(h => h.hanh === nguyenThanHanh && h.c);
+                kyThanHao = allHaos.find(h => h.hanh === kyThanHanh && h.c);
+                const monthHanh = NGU_HANH[dateInfo.monthChi];
+                isVuong = dungThanHao.hanh === monthHanh || SINH_KHAC[monthHanh].sinh === dungThanHao.hanh;
+            }
+
+            if (!dungThanHao) { points.goc.push(`Dụng thần (${dungThanName}) không xuất hiện trong quẻ (phục tàng). Sự việc còn tiềm ẩn, chưa rõ ràng, cần thời gian.`); score = -2;
+            } else {
+                points.goc.push(`Dụng thần là <strong>${dungThanName}</strong> tại hào ${dungThanHao.index + 1}.`);
+                points.goc.push(`Dụng thần ${isVuong ? `được Lệnh Tháng (${dateInfo.monthChi}) sinh trợ (vượng), nền tảng sự việc tốt.` : `không được Lệnh Tháng sinh trợ (hưu tù), nền tảng yếu.`}`);
+                score += isVuong ? 2 : -1;
+                if (dungThanHao.c) { points.goc.push(`Dụng thần phát động, cho thấy sự việc đang diễn ra hoặc sắp có biến chuyển lớn.`); score += 1; }
+                if (TuanKhong.includes(dungThanHao.chi)) { points.goc.push(`Dụng thần lâm Tuần Không, thể hiện sự việc còn hư ảo, không có hiệu lực, hoặc tâm chưa quyết.`); score -= 2; }
+                if(theHao && dungThanHao && theHao.index!==dungThanHao.index){if(SINH_KHAC[theHao.hanh].sinh===dungThanHao.hanh){points.goc.push(`Hào Thế sinh Dụng thần: Bản thân chủ động hướng tới mục tiêu.`);score++}else if(SINH_KHAC[dungThanHao.hanh].sinh===theHao.hanh){points.goc.push(`Dụng thần sinh Hào Thế: Sự việc có lợi, dễ dàng đạt được.`);score+=2}else if(SINH_KHAC[dungThanHao.hanh].khac===theHao.hanh){points.goc.push(`Dụng thần khắc Hào Thế: Sự việc gây áp lực, khó khăn cho bản thân.`);score-=2}}
+                if(nguyenThanHao) { points.goc.push(`Có hào ${nguyenThanHao.index+1} động sinh cho Dụng thần (Nguyên thần), là sự trợ giúp đắc lực.`); score += 3; }
+                if(kyThanHao) { points.goc.push(`Có hào ${kyThanHao.index+1} động khắc Dụng thần (Kỵ thần), là trở ngại lớn.`); score -= 3; }
+            }
+            if(mutualHexData) points.ho.push(`Quá trình diễn biến được thể hiện qua quẻ Hỗ <strong>${mutualHexData.name}</strong>, cho thấy bản chất sự việc có sự [${mutualHexData.name}].`);
+            if(changedHexData) {
+                points.bien.push(`Kết quả cuối cùng được hé lộ qua quẻ Biến <strong>${changedHexData.name}</strong>.`);
+                if (dungThanHao && dungThanHao.c) {
+                    const changedLineHanh = NGU_HANH[changedHexData.branches[dungThanHao.index]];
+                    if(changedLineHanh === dungThanHao.hanh || SINH_KHAC[dungThanHao.hanh].sinh === changedLineHanh) { points.bien.push(`Dụng thần hóa Hồi đầu sinh hoặc Tỷ hòa, cho thấy sự việc tự nó sẽ phát triển tốt lên.`); score += 3;
+                    } else if (SINH_KHAC[dungThanHao.hanh].khac === changedLineHanh) { points.bien.push(`Dụng thần hóa Hồi đầu khắc, là điềm tự hủy, sự việc càng làm càng hỏng.`); score -= 3; }
+                }
+            }
+            
+            let hintText = '';
+            if(selectedQuestion === 'tim-do') {
+                const quanQuiDong = allHaos.find(h => h.c && h.lucThan === 'Quan Quỷ'); 
+                if(quanQuiDong) { points.goc.push(`Hào Quan Quỷ tại hào ${quanQuiDong.index+1} phát động, có thể do người khác lấy hoặc bị che khuất, gây khó khăn cho việc tìm kiếm.`); score -= 2; }
+                if(dungThanHao) { hintText = `<strong>Gợi ý:</strong> Dụng thần tại <strong>${DIRECTION_MAP[dungThanHao.chi]}</strong>, có hành <strong>${dungThanHao.hanh}</strong>. Thử tìm ở ${LOCATION_HINTS[dungThanHao.hanh]}`; }
+                else { hintText = `<strong>Gợi ý:</strong> Dụng Thần ẩn tàng, cho thấy đồ vật bị che khuất kỹ. Hãy tập trung suy nghĩ về những nơi kín đáo, trong kho, gầm tủ, hoặc những chỗ ít khi sử dụng đến.`; }
+            } else {
+                if(kyThanHao) hintText = `<strong>Gợi ý:</strong> Cần hết sức cẩn trọng với các yếu tố thuộc <strong>${kyThanHao.lucThan} (${kyThanHao.hanh})</strong> để tránh thất bại.`;
+                else if(nguyenThanHao) hintText = `<strong>Gợi ý:</strong> Hãy tích cực tìm kiếm sự hỗ trợ từ các yếu tố thuộc <strong>${nguyenThanHao.lucThan} (${nguyenThanHao.hanh})</strong> để sự việc hanh thông.`;
+                else if(dungThanHao && !isVuong) hintText = `<strong>Gợi ý:</strong> Nền tảng sự việc chưa vững chắc, Dụng Thần lại không có trợ giúp. Đây không phải thời điểm thích hợp, nên án binh bất động hoặc chuẩn bị thêm.`;
+                else if (score >= 1) hintText = `<strong>Gợi ý:</strong> Thời cơ đang tốt, các yếu tố trong quẻ đều ủng hộ. Hãy mạnh dạn hành động để nắm bắt cơ hội.`;
+                else hintText = `<strong>Gợi ý:</strong> Quẻ này cho thấy tình hình trung bình, không có yếu tố trợ giúp hay phá hoại nào quá mạnh. Sự thành bại phụ thuộc nhiều vào nỗ lực của bản thân.`;
+            }
+            points.hint = hintText;
+
+            const summaryMap = SUMMARY_TEXTS[selectedQuestion] || SUMMARY_TEXTS.default;
+            let summary, summaryClass;
+            if(score>=4){summary=summaryMap.vgood;summaryClass="summary-good"}else if(score>=1){summary=summaryMap.good;summaryClass="summary-good"}else if(score<=-4){summary=summaryMap.vbad;summaryClass="summary-bad"}else if(score<=-1){summary=summaryMap.bad;summaryClass="summary-bad"}else{summary=summaryMap.neutral;summaryClass="summary-neutral"}
+            return{points,summary,summaryClass};
+        }
+        
+        // --- RENDER FUNCTIONS ---
+        function renderHexagram(c,lA,m={}){let h='';lA.forEach((l,i)=>{const hao=i+1,isB=l.l==='broken',isC=l.c,lC=isC?'line changing':'line',lCo=isB?'<div class="broken-part"></div><div class="broken-part"></div>':'',lD=`<div class="${lC} ${isB?'broken':''}"">${lCo}</div>`;let mT='',mC='',iTU=!!m[hao];if(iTU){mT=`[${m[hao]}]`;mC='marker-the-ung'}if(isC){mT=iTU?`${mT} [Động]`:'[Động]';if(!iTU)mC='marker-dong'}const mD=mT?`<div class="line-marker ${mC}">${mT}</div>`:'';h+=`<div class="line-wrapper">${lD}${mD}</div>`});c.innerHTML=h};
+        function renderAnalysisTable(d){const{hexData:hD,lines:l,TheUng:T,TuanKhong:TK,palaceHanh:pH}=d;const tH=l.map((lI,i)=>{const h=i+1,c=hD.branches[i],ha=NGU_HANH[c],lT=getLucThan(pH,ha),iTK=TK.includes(c),rC=T[h]?'row-the-ung':'';return`<tr class="${rC}"><td><strong>${h}</strong></td><td class="line-symbol">${lI.l==='unbroken'?'—':'— —'}</td><td>${lI.c?'<strong class="dong-text">ĐỘNG</strong>':'Tĩnh'}</td><td>${c} <span class="luc-than ${ha}">${ha}</span></td><td>${lT}</td><td><strong>${T[h]||''}</strong></td><td>${iTK?'<span class="tuan-khong">Có</span>':''}</td></tr>`}).reverse().join('');DOM.analysisTableBody.innerHTML=tH};
+        function renderAIInterpretation({points,summary,summaryClass}){const renderList=p=>p.length>0?`<ul>${p.map(i=>`<li>${i}</li>`).join('')}</ul>`:'<p style="opacity:0.7; font-style:italic;">Không có luận giải đặc biệt cho mục này.</p>';const hintHTML=points.hint?`<div class="ai-hint"><h4>Lời Khuyên Từ Quẻ Dịch</h4><p>${points.hint}</p></div>`:'';DOM.aiInterpretationContainer.innerHTML=`<h3 style="text-align:center;">Luận Giải Quẻ</h3><h4>1. Phân Tích Quẻ Gốc</h4>${renderList(points.goc)}<h4>2. Luận Giải Quá Trình (Quẻ Hỗ)</h4>${renderList(points.ho)}<h4>3. Dự Đoán Kết Quả (Quẻ Biến)</h4>${renderList(points.bien)}<div class="ai-summary ${summaryClass}">Tổng Kết: ${summary}</div>${hintHTML}<p class="credits" style="margin-top:15px;">Lưu ý: Hệ thống luận giải chỉ mang tính chất tham khảo</p><p class="credits">Lên ý tưởng by HN, code by Gemini</p>`;DOM.aiInterpretationContainer.style.display='block'};
+        function renderError(binaryCode) {
+            DOM.analysisPanel.classList.add('visible');
+            DOM.aiInterpretationContainer.style.display = 'block';
+            DOM.aiInterpretationContainer.innerHTML = `<h3 style="text-align:center; color: var(--danger-color);">Gặp Lỗi Dữ Liệu</h3><p>Rất xin lỗi, đã có một lỗi không mong muốn xảy ra với dữ liệu của quẻ vừa gieo. Vui lòng bấm "Gieo Lại".</p><p class="credits">Mã lỗi (dành cho nhà phát triển): ${binaryCode}</p>`;
+            [DOM.mainHexTitle, DOM.quInfo, document.getElementById('analysis-table'), DOM.quHoInfoBox, DOM.quBienInfoBox].forEach(el => el.style.display = 'none');
+        }
+
+        // --- EVENT HANDLERS & MAIN LOGIC ---
+        function handleCastClick(){if(state.castCount>=6)return;const sum=(Math.floor(Math.random()*2)+2)+(Math.floor(Math.random()*2)+2)+(Math.floor(Math.random()*2)+2),lineType=sum===6?{c:true,l:'broken'}:sum===7?{c:false,l:'unbroken'}:sum===8?{c:false,l:'broken'}:{c:true,l:'unbroken'};state.lines.push(lineType);state.castCount++;renderHexagram(DOM.castHexagram,state.lines);if(state.castCount===1)DOM.hexagramGroup.style.display='block';DOM.castButton.innerText=state.castCount<6?`Lập Quẻ (${state.castCount+1}/6)`:'Hiển Hiện...';if(state.castCount===6){DOM.castButton.disabled=true;DOM.questionSelect.disabled=true;setTimeout(finalizeAndShowAll,800)}};
+        function handleResetClick(){state.lines=[];state.castCount=0;DOM.hexagramGroup.style.display='none';DOM.analysisPanel.classList.remove('visible');DOM.castButton.innerText='Lập Quẻ (1/6)';DOM.castButton.disabled=false;DOM.castButton.style.display='inline-block';DOM.resetButton.style.display='none';DOM.questionSelect.disabled=false;[DOM.castHexagramName,DOM.mutualHexagramName,DOM.changedHexagramName].forEach(el=>el.textContent='');[DOM.mainHexTitle, DOM.quInfo, document.getElementById('analysis-table'), DOM.quHoInfoBox, DOM.quBienInfoBox].forEach(el => el.style.display = 'block');};
+        function finalizeAndShowAll(){
+            state.selectedQuestion=DOM.questionSelect.value;
+            const castBinary=state.lines.map(l=>l.l==='unbroken'?'1':'0').join(''),hexData=KINH_DICH_DATA[castBinary];
+            if(!hexData){ console.error("FATAL DATA ERROR for binary:", castBinary); renderError(castBinary); return; }
+            
+            const dateInfo=getCanChiDate(),palaceHanh=CUNG_NGU_HANH[hexData.palace],TuanKhong=getTuanKhong(dateInfo.dayCanChi),TheUng=getTheUng(hexData);
+            const mutualLines=[{...state.lines[1],c:false},{...state.lines[2],c:false},{...state.lines[3],c:false},{...state.lines[3],c:false},{...state.lines[4],c:false},{...state.lines[5],c:false}],mutualBinary=mutualLines.map(l=>l.l==='unbroken'?'1':'0').join(''),mutualHexData=KINH_DICH_DATA[mutualBinary];
+            const hasChangingLines=state.lines.some(l=>l.c),changedBinary=hasChangingLines?state.lines.map(l=>l.c?(l.l==='unbroken'?'0':'1'):(l.l==='unbroken'?'1':'0')).join(''):null,changedHexData=changedBinary?KINH_DICH_DATA[changedBinary]:null;
+            
+            const analysisData={lines:state.lines,hexData,palaceHanh,TheUng,TuanKhong,selectedQuestion:state.selectedQuestion,dateInfo,mutualHexData,changedHexData};
+            
+            renderHexagram(DOM.castHexagram,state.lines,TheUng);
+            DOM.castHexagramName.textContent=hexData.name;
+            DOM.mutualHexagramContainer.style.display=mutualHexData?'block':'none';if(mutualHexData){renderHexagram(DOM.mutualHexagram,mutualLines);DOM.mutualHexagramName.textContent=mutualHexData.name;}
+            DOM.changedHexagramContainer.style.display=hasChangingLines?'block':'none';if(hasChangingLines){const changedLines=state.lines.map(l=>({l:l.c?(l.l==='unbroken'?'broken':'unbroken'):l.l,c:false}));renderHexagram(DOM.changedHexagram,changedLines);if(changedHexData)DOM.changedHexagramName.textContent=changedHexData.name;}
+            
+            renderAIInterpretation(runAI(analysisData));
+            DOM.mainHexTitle.innerText=`Phân Tích Chi Tiết: ${hexData.name}`;DOM.quInfo.innerHTML=`<p><strong>Ngày Gieo:</strong> ${dateInfo.dayCanChi} (Tháng ${dateInfo.monthChi}) - <strong>Quẻ Cung:</strong> ${hexData.palace} (${palaceHanh})</p><p><strong>Tuần Không:</strong> <span class="tuan-khong">${TuanKhong.join(', ')}</span></p>`;renderAnalysisTable(analysisData);
+            DOM.quHoInfoBox.style.display=mutualHexData?'block':'none';if(mutualHexData)DOM.quHoInfoBox.innerHTML=`<h4 style="margin:0;color:var(--primary-color);">Thông Tin Quẻ Hỗ: ${mutualHexData.name}</h4>`;
+            DOM.quBienInfoBox.style.display=hasChangingLines&&changedHexData?'block':'none';if(hasChangingLines&&changedHexData)DOM.quBienInfoBox.innerHTML=`<h4 style="margin:0;color:var(--primary-color);">Thông Tin Quẻ Biến: ${changedHexData.name}</h4>`;
+            
+            DOM.castButton.style.display='none';DOM.resetButton.style.display='inline-block';DOM.analysisPanel.classList.add('visible');DOM.analysisPanel.scrollIntoView({behavior:'smooth',block:'start'})
+        }
+        
+        // --- INITIALIZATION ---
+        DOM.castButton.addEventListener('click', handleCastClick);
+        DOM.resetButton.addEventListener('click', handleResetClick);
+    })();
+    </script>
+</body>
+</html>
